@@ -11,6 +11,7 @@ urlpatterns = [
     path("documents/<int:pk>/delete/", views.document_delete, name="document_delete"),
     path("documents/<int:pk>/share/", views.document_share, name="document_share"),
     path("documents/<int:pk>/unshare/<int:user_id>/", views.document_unshare, name="document_unshare"),
+    path("shared/", views.shared_with_me, name="shared_with_me"),
 
 
 ]

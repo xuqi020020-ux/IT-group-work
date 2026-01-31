@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Shared With Me · NoteHub{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div>
+    <h1 class="h4 mb-1">Shared With Me</h1>
+    <div class="text-muted">Documents shared to your account.</div>
+  </div>
+  <a class="btn btn-outline-secondary" href="{% url 'core:dashboard' %}">Back to Dashboard</a>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    {% if documents %}
+      <div class="list-group">
+        {% for doc in documents %}
+          <a class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
+             href="{% url 'core:document_detail' doc.pk %}">
+            <div>
+              <div class="fw-semibold">{{ doc.title }}</div>
+              <div class="small text-muted">Owner: {{ doc.owner.username }}</div>
+            </div>
+            <div class="d-flex gap-2">
+              <span class="badge bg-primary">{{ doc.access_label }}</span>
+              <span class="badge bg-secondary">{{ doc.visibility_status }}</span>
+            </div>
+          </a>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="text-muted">No documents have been shared to you yet.</div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+

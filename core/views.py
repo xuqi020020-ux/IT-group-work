@@ -36,6 +36,25 @@ def can_view_document(user, doc):
     # Private: only owner (already handled)
     return False
 
+@login_required
+def shared_with_me(request):
+    if request.user.is_staff:
+        # Admin doesn't need this view; keep it simple
+        docs = Document.objects.none()
+    else:
+        shared_ids = DocumentShare.objects.filter(
+            shared_with=request.user
+        ).values_list("document_id", flat=True)
+
+        docs = Document.objects.filter(
+            id__in=shared_ids,
+            visibility_status=Document.VIS_SHARED
+        ).exclude(visibility_status=Document.VIS_MODERATED).order_by("-updated_at")
+
+        for d in docs:
+            d.access_label = "Shared"
+
+    return render(request, "core/shared_with_me.html", {"documents": docs})
 
 
 @login_required
