@@ -69,7 +69,49 @@ def dashboard(request):
         )
 
     docs = docs.order_by("-updated_at").distinct()
+
+
+    # Build a quick lookup to label "Shared" docs
+    shared_ids = set()
+    if not request.user.is_staff:
+        shared_ids = set(DocumentShare.objects.filter(
+            shared_with=request.user
+        ).values_list("document_id", flat=True))
+
+    doc_sources = {}
+
+    if not request.user.is_staff:
+        shared_ids = set(DocumentShare.objects.filter(
+            shared_with=request.user
+        ).values_list("document_id", flat=True))
+    else:
+        shared_ids = set()
+
+    for d in docs:
+        if d.owner_id == request.user.id:
+            d.access_label = "Owned"
+        elif d.visibility_status == Document.VIS_PUBLIC:
+            d.access_label = "Public"
+        elif d.id in shared_ids:
+            d.access_label = "Shared"
+        else:
+            d.access_label = "Accessible"
+
     return render(request, "core/dashboard.html", {"documents": docs, "q": q})
+
+
+#    for d in docs:
+#        if d.owner_id == request.user.id:
+#            doc_sources[d.id] = "Owned"
+#        elif d.visibility_status == Document.VIS_PUBLIC:
+#            doc_sources[d.id] = "Public"
+#        elif d.id in shared_ids:
+#            doc_sources[d.id] = "Shared"
+#        else:
+#            doc_sources[d.id] = "Accessible"
+
+
+#    return render(request, "core/dashboard.html", {"documents": docs, "q": q, "doc_sources": doc_sources})
 
 
 @login_required

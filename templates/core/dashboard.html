@@ -33,7 +33,15 @@
               <div class="fw-semibold">{{ doc.title }}</div>
               <div class="small text-muted">Updated {{ doc.updated_at|date:"Y-m-d H:i" }}</div>
             </div>
+
+            <span class="badge bg-primary">
+               {{ doc_sources|default_if_none:"" }}
+            </span>
+           
+            <span class="badge bg-primary">{{ doc.access_label }}</span>
             <span class="badge bg-secondary">{{ doc.visibility_status }}</span>
+          
+           
           </a>
         {% endfor %}
       </div>
