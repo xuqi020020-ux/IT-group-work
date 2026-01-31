@@ -15,6 +15,8 @@ urlpatterns = [
     path("documents/<int:pk>/suggest/", views.suggestion_create, name="suggestion_create"),
     path("suggestions/review/", views.suggestion_review_list, name="suggestion_review_list"),
     path("suggestions/<int:sid>/review/", views.suggestion_review_action, name="suggestion_review_action"),
+    path("documents/<int:pk>/comments/add/", views.comment_add, name="comment_add"),
+    path("comments/<int:cid>/delete/", views.comment_delete, name="comment_delete"),
 
 
 ]

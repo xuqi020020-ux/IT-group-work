@@ -6,8 +6,10 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib.auth.models import User
 
 from django.utils import timezone
-from .models import Document, DocumentShare, EditSuggestion
-from .forms import DocumentForm, ShareForm, SuggestionForm
+
+from .models import Document, DocumentShare, EditSuggestion, Comment
+from .forms import DocumentForm, ShareForm, SuggestionForm, CommentForm
+
 
 
 from django.db.models import Q
@@ -35,6 +37,70 @@ def can_view_document(user, doc):
 
     # Private: only owner (already handled)
     return False
+
+def can_comment(user, doc):
+    # must be able to view first
+    if not can_view_document(user, doc):
+        return False
+
+    # owner can comment on their own docs
+    if user.is_staff or doc.owner_id == user.id:
+        return True
+
+    # private: only owner
+    if doc.visibility_status == Document.VIS_PRIVATE:
+        return False
+
+    # moderated: block for non-owner (already blocked by can_view_document)
+    if doc.visibility_status == Document.VIS_MODERATED:
+        return False
+
+    # public/shared: any viewer can comment
+    return doc.visibility_status in (Document.VIS_PUBLIC, Document.VIS_SHARED)
+
+@login_required
+def comment_add(request, pk):
+    doc = get_object_or_404(Document, pk=pk)
+
+    if not can_comment(request.user, doc):
+        return HttpResponseForbidden("You do not have permission to comment on this document.")
+
+    if request.method != "POST":
+        return HttpResponseForbidden("Invalid request method.")
+
+    form = CommentForm(request.POST)
+    if form.is_valid():
+        Comment.objects.create(
+            document=doc,
+            author=request.user,
+            content=form.cleaned_data["content"],
+        )
+
+    return redirect("core:document_detail", pk=doc.pk)
+
+@login_required
+def comment_delete(request, cid):
+    c = get_object_or_404(Comment, pk=cid)
+    doc = c.document
+
+    # Must at least be able to view the document
+    if not can_view_document(request.user, doc):
+        return HttpResponseForbidden("You do not have permission to access this document.")
+
+    # Who can delete:
+    # - admin
+    # - document owner
+    # - comment author
+    if not (request.user.is_staff or doc.owner_id == request.user.id or c.author_id == request.user.id):
+        return HttpResponseForbidden("You do not have permission to delete this comment.")
+
+    if request.method != "POST":
+        return HttpResponseForbidden("Invalid request method.")
+
+    c.delete()
+    return redirect("core:document_detail", pk=doc.pk)
+
+
 
 @login_required
 def shared_with_me(request):

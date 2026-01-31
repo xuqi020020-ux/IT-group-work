@@ -24,3 +24,9 @@ class SuggestionForm(forms.Form):
         label="Proposed content",
     )
 
+class CommentForm(forms.Form):
+    content = forms.CharField(
+        widget=forms.Textarea(attrs={"class": "form-control", "rows": 3, "placeholder": "Write a comment..."}),
+        label="",
+    )
+
