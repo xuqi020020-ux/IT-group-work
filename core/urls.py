@@ -12,6 +12,9 @@ urlpatterns = [
     path("documents/<int:pk>/share/", views.document_share, name="document_share"),
     path("documents/<int:pk>/unshare/<int:user_id>/", views.document_unshare, name="document_unshare"),
     path("shared/", views.shared_with_me, name="shared_with_me"),
+    path("documents/<int:pk>/suggest/", views.suggestion_create, name="suggestion_create"),
+    path("suggestions/review/", views.suggestion_review_list, name="suggestion_review_list"),
+    path("suggestions/<int:sid>/review/", views.suggestion_review_action, name="suggestion_review_action"),
 
 
 ]

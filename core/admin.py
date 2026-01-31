@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Document, DocumentShare
+from .models import Document, DocumentShare, EditSuggestion
 
 
 @admin.register(Document)
@@ -12,4 +12,10 @@ class DocumentAdmin(admin.ModelAdmin):
 class DocumentShareAdmin(admin.ModelAdmin):
     list_display = ("id", "document", "shared_with", "created_at")
     search_fields = ("document__title", "shared_with__username")
+
+@admin.register(EditSuggestion)
+class EditSuggestionAdmin(admin.ModelAdmin):
+    list_display = ("id", "document", "proposer", "status", "created_at")
+    list_filter = ("status", "created_at")
+    search_fields = ("document__title", "proposer__username")
 

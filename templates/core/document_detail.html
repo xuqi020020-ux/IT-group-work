@@ -13,6 +13,12 @@
         <a class="btn btn-outline-primary btn-sm" href="{% url 'core:document_share' document.pk %}">Share</a>
         <a class="btn btn-outline-secondary btn-sm" href="{% url 'core:document_edit' document.pk %}">Edit</a>
         <a class="btn btn-outline-danger btn-sm" href="{% url 'core:document_delete' document.pk %}">Delete</a>
+     {% else %}
+        {% if document.visibility_status == "public" or document.visibility_status == "shared" %}
+          <a class="btn btn-outline-primary btn-sm" href="{% url 'core:suggestion_create' document.pk %}">
+            Suggest Edit
+          </a>
+        {% endif %}
      {% endif %}
   </div>
 </div>

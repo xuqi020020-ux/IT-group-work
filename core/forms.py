@@ -18,3 +18,9 @@ class ShareForm(forms.Form):
         widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "Username to share with"})
     )
 
+class SuggestionForm(forms.Form):
+    proposed_content = forms.CharField(
+        widget=forms.Textarea(attrs={"class": "form-control", "rows": 14}),
+        label="Proposed content",
+    )
+

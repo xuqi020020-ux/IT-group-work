@@ -5,9 +5,9 @@ from django.shortcuts import get_object_or_404, redirect, render
 
 from django.contrib.auth.models import User
 
-
-from .models import Document, DocumentShare
-from .forms import DocumentForm
+from django.utils import timezone
+from .models import Document, DocumentShare, EditSuggestion
+from .forms import DocumentForm, ShareForm, SuggestionForm
 
 
 from django.db.models import Q
@@ -238,4 +238,84 @@ def document_unshare(request, pk, user_id):
 
     DocumentShare.objects.filter(document=doc, shared_with_id=user_id).delete()
     return redirect("core:document_share", pk=doc.pk)
+
+@login_required
+def suggestion_create(request, pk):
+    doc = get_object_or_404(Document, pk=pk)
+
+    # Must be able to view the document
+    if not can_view_document(request.user, doc):
+        return HttpResponseForbidden("You do not have permission to access this document.")
+
+    # Owner doesn't need to suggest edits on their own doc
+    if doc.owner_id == request.user.id:
+        return HttpResponseForbidden("Owners cannot submit suggestions for their own documents.")
+
+    # Only allow suggestions for public or shared docs (shared-with-me)
+    if not (doc.visibility_status == Document.VIS_PUBLIC or doc.visibility_status == Document.VIS_SHARED):
+        return HttpResponseForbidden("Suggestions are only allowed for public/shared documents.")
+
+    # If shared, ensure actually shared with the user (can_view_document already implies this)
+    form = SuggestionForm(request.POST or None)
+
+    if request.method == "POST" and form.is_valid():
+        EditSuggestion.objects.create(
+            document=doc,
+            proposer=request.user,
+            proposed_content=form.cleaned_data["proposed_content"],
+            status=EditSuggestion.STATUS_PENDING,
+        )
+        return redirect("core:document_detail", pk=doc.pk)
+
+    # Prefill with current content for easier editing
+    if request.method == "GET":
+        form = SuggestionForm(initial={"proposed_content": doc.content})
+
+    return render(request, "core/suggestion_form.html", {"document": doc, "form": form})
+
+
+@login_required
+def suggestion_review_list(request):
+    # Owner sees suggestions on their documents; admin can see all (optional)
+    if request.user.is_staff:
+        qs = EditSuggestion.objects.filter(status=EditSuggestion.STATUS_PENDING)
+    else:
+        qs = EditSuggestion.objects.filter(
+            status=EditSuggestion.STATUS_PENDING,
+            document__owner=request.user
+        )
+
+    qs = qs.select_related("document", "proposer").order_by("-created_at")
+    return render(request, "core/suggestion_review_list.html", {"suggestions": qs})
+
+
+@login_required
+def suggestion_review_action(request, sid):
+    sug = get_object_or_404(EditSuggestion, pk=sid)
+    doc = sug.document
+
+    # Only owner of the document (or admin) can review
+    if not (request.user.is_staff or doc.owner_id == request.user.id):
+        return HttpResponseForbidden("You do not have permission to review this suggestion.")
+
+    if request.method != "POST":
+        return HttpResponseForbidden("Invalid request method.")
+
+    action = request.POST.get("action")
+
+    if sug.status != EditSuggestion.STATUS_PENDING:
+        return redirect("core:suggestion_review_list")
+
+    if action == "accept":
+        doc.content = sug.proposed_content
+        doc.save()
+        sug.status = EditSuggestion.STATUS_ACCEPTED
+        sug.reviewed_at = timezone.now()
+        sug.save()
+    elif action == "reject":
+        sug.status = EditSuggestion.STATUS_REJECTED
+        sug.reviewed_at = timezone.now()
+        sug.save()
+
+    return redirect("core:suggestion_review_list")
 
