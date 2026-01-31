@@ -49,3 +49,22 @@ class Document(models.Model):
     def __str__(self):
         return self.title
 
+class DocumentShare(models.Model):
+    document = models.ForeignKey(
+        Document,
+        on_delete=models.CASCADE,
+        related_name="shares",
+    )
+    shared_with = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="document_access",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("document", "shared_with")
+
+    def __str__(self):
+        return "{} -> {}".format(self.document_id, self.shared_with_id)
+
