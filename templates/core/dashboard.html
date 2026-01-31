@@ -9,6 +9,19 @@
   <a class="btn btn-primary" href="{% url 'core:document_create' %}">+ New Document</a>
 </div>
 
+<form class="row g-2 mb-3" method="get">
+  <div class="col-md-8">
+    <input class="form-control" type="text" name="q" placeholder="Search by title or author..." value="{{ q|default:'' }}">
+  </div>
+  <div class="col-md-2">
+    <button class="btn btn-outline-primary w-100" type="submit">Search</button>
+  </div>
+  <div class="col-md-2">
+    <a class="btn btn-outline-secondary w-100" href="{% url 'core:dashboard' %}">Clear</a>
+  </div>
+</form>
+
+
 <div class="card">
   <div class="card-body">
     {% if documents %}

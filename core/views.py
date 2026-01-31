@@ -6,11 +6,23 @@ from django.shortcuts import get_object_or_404, redirect, render
 from .models import Document
 from .forms import DocumentForm
 
+from django.db.models import Q
 
 @login_required
 def dashboard(request):
-    docs = Document.objects.filter(owner=request.user).order_by("-updated_at")
-    return render(request, "core/dashboard.html", {"documents": docs})
+    q = request.GET.get("q", "").strip()
+
+    docs = Document.objects.filter(owner=request.user)
+
+    if q:
+        docs = docs.filter(
+            Q(title__icontains=q) |
+            Q(owner__username__icontains=q)
+        )
+
+    docs = docs.order_by("-updated_at")
+    return render(request, "core/dashboard.html", {"documents": docs, "q": q})
+
 
 
 @login_required
