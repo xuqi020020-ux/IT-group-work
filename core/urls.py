@@ -10,6 +10,8 @@ urlpatterns = [
     path("documents/<int:pk>/edit/", views.document_edit, name="document_edit"),
     path("documents/<int:pk>/delete/", views.document_delete, name="document_delete"),
     path("documents/<int:pk>/share/", views.document_share, name="document_share"),
+    path("documents/<int:pk>/unshare/<int:user_id>/", views.document_unshare, name="document_unshare"),
+
 
 ]
 

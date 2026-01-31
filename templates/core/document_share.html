@@ -40,10 +40,17 @@
     {% if shares %}
       <ul class="list-group">
         {% for s in shares %}
+
           <li class="list-group-item d-flex justify-content-between align-items-center">
             <span>{{ s.shared_with.username }}</span>
-            <!-- Unshare button will be added in next step (optional) -->
+  
+            <form method="post" action="{% url 'core:document_unshare' document.pk s.shared_with.id %}">
+              {% csrf_token %}
+              <button class="btn btn-outline-danger btn-sm" type="submit">Remove</button>
+            </form>
           </li>
+
+
         {% endfor %}
       </ul>
     {% else %}

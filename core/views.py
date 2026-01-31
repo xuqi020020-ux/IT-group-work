@@ -163,3 +163,18 @@ def document_share(request, pk):
         "message": message,
     })
 
+
+@login_required
+def document_unshare(request, pk, user_id):
+    doc = get_object_or_404(Document, pk=pk)
+
+    # Only owner or admin can unshare
+    if not (request.user.is_staff or doc.owner_id == request.user.id):
+        return HttpResponseForbidden("You do not have permission to manage shares for this document.")
+
+    if request.method != "POST":
+        return HttpResponseForbidden("Invalid request method.")
+
+    DocumentShare.objects.filter(document=doc, shared_with_id=user_id).delete()
+    return redirect("core:document_share", pk=doc.pk)
+
