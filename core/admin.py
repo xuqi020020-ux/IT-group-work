@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Document, DocumentShare, EditSuggestion
+from .models import Document, DocumentShare, EditSuggestion, Comment
 
 
 @admin.register(Document)
@@ -18,4 +18,10 @@ class EditSuggestionAdmin(admin.ModelAdmin):
     list_display = ("id", "document", "proposer", "status", "created_at")
     list_filter = ("status", "created_at")
     search_fields = ("document__title", "proposer__username")
+
+@admin.register(Comment)
+class CommentAdmin(admin.ModelAdmin):
+    list_display = ("id", "document", "author", "created_at")
+    search_fields = ("document__title", "author__username", "content")
+    list_filter = ("created_at",)
 
