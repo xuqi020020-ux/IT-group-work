@@ -179,9 +179,7 @@ http://127.0.0.1:8000/
 
 ---
 
-## 6. Screenshots ｜ 截图（可选）
-
-You may add screenshots here:
+## 6. Screenshots（Temporarily vacant） 
 
 * Login Page
 * Dashboard
@@ -189,7 +187,6 @@ You may add screenshots here:
 * Suggestion Review
 * Admin Panel
 
-（可在此处插入界面截图）
 
 ---
 
