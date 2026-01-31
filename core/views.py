@@ -10,6 +10,32 @@ from .forms import DocumentForm
 
 from django.db.models import Q
 
+def can_view_document(user, doc):
+    # Admin: can view all docs
+    if user.is_staff:
+        return True
+
+    # Owner: can always view their own docs (including moderated)
+    if doc.owner_id == user.id:
+        return True
+
+    # Moderated: not visible to non-owner
+    if doc.visibility_status == Document.VIS_MODERATED:
+        return False
+
+    # Public: visible to any logged-in user
+    if doc.visibility_status == Document.VIS_PUBLIC:
+        return True
+
+    # Shared: visible if shared with user
+    if doc.visibility_status == Document.VIS_SHARED:
+        return DocumentShare.objects.filter(document=doc, shared_with=user).exists()
+
+    # Private: only owner (already handled)
+    return False
+
+
+
 @login_required
 def dashboard(request):
     q = request.GET.get("q", "").strip()
@@ -46,7 +72,12 @@ def dashboard(request):
 
 @login_required
 def document_detail(request, pk):
-    doc = get_object_or_404(Document, pk=pk, owner=request.user)
+
+    doc = get_object_or_404(Document, pk=pk)
+    if not can_view_document(request.user, doc):
+        return HttpResponseForbidden("You do not have permission to view this document.")
+
+
     return render(request, "core/document_detail.html", {"document": doc})
 
 
@@ -66,7 +97,11 @@ def document_create(request):
 
 @login_required
 def document_edit(request, pk):
-    doc = get_object_or_404(Document, pk=pk, owner=request.user)
+    
+    doc = get_object_or_404(Document, pk=pk)
+    if not (request.user.is_staff or doc.owner_id == request.user.id):
+        return HttpResponseForbidden("You do not have permission to edit this document.")
+
     if request.method == "POST":
         form = DocumentForm(request.POST, instance=doc)
         if form.is_valid():
@@ -79,7 +114,11 @@ def document_edit(request, pk):
 
 @login_required
 def document_delete(request, pk):
-    doc = get_object_or_404(Document, pk=pk, owner=request.user)
+
+    doc = get_object_or_404(Document, pk=pk)
+    if not (request.user.is_staff or doc.owner_id == request.user.id):
+        return HttpResponseForbidden("You do not have permission to delete this document.")
+
     if request.method == "POST":
         doc.delete()
         return redirect("core:dashboard")
