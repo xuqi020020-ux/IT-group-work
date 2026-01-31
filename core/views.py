@@ -3,8 +3,10 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 
-from .models import Document
+
+from .models import Document, DocumentShare
 from .forms import DocumentForm
+
 
 from django.db.models import Q
 
@@ -12,7 +14,25 @@ from django.db.models import Q
 def dashboard(request):
     q = request.GET.get("q", "").strip()
 
-    docs = Document.objects.filter(owner=request.user)
+    # Admin can see all documents (including moderated)
+    if request.user.is_staff:
+        docs = Document.objects.all()
+    else:
+        # Accessible docs:
+        # - owned by user
+        # - public
+        # - shared with user
+        shared_doc_ids = DocumentShare.objects.filter(
+            shared_with=request.user
+        ).values_list("document_id", flat=True)
+
+        docs = Document.objects.filter(
+            Q(owner=request.user) |
+            Q(visibility_status=Document.VIS_PUBLIC) |
+            Q(id__in=shared_doc_ids)
+        ).exclude(
+            visibility_status=Document.VIS_MODERATED
+        )
 
     if q:
         docs = docs.filter(
@@ -20,9 +40,8 @@ def dashboard(request):
             Q(owner__username__icontains=q)
         )
 
-    docs = docs.order_by("-updated_at")
+    docs = docs.order_by("-updated_at").distinct()
     return render(request, "core/dashboard.html", {"documents": docs, "q": q})
-
 
 
 @login_required
