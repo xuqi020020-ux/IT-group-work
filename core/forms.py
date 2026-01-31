@@ -12,3 +12,9 @@ class DocumentForm(forms.ModelForm):
             "visibility_status": forms.Select(attrs={"class": "form-select"}),
         }
 
+class ShareForm(forms.Form):
+    username = forms.CharField(
+        max_length=150,
+        widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "Username to share with"})
+    )
+

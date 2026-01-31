@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Share · {{ document.title }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-start mb-3">
+  <div>
+    <h1 class="h4 mb-1">Share Document</h1>
+    <div class="text-muted">{{ document.title }}</div>
+  </div>
+  <a class="btn btn-outline-secondary btn-sm" href="{% url 'core:document_detail' document.pk %}">Back</a>
+</div>
+
+{% if message %}
+  <div class="alert alert-info">{{ message }}</div>
+{% endif %}
+
+<div class="card mb-3">
+  <div class="card-body">
+    <form method="post" class="row g-2 align-items-end">
+      {% csrf_token %}
+      <div class="col-md-8">
+        <label class="form-label">Share with username</label>
+        {{ form.username }}
+      </div>
+      <div class="col-md-4">
+        <button class="btn btn-primary w-100" type="submit">Share</button>
+      </div>
+    </form>
+
+    <div class="text-muted small mt-2">
+      Tip: sharing takes effect when the document visibility is set to <b>shared</b>.
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    <h2 class="h6">Currently shared with</h2>
+
+    {% if shares %}
+      <ul class="list-group">
+        {% for s in shares %}
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            <span>{{ s.shared_with.username }}</span>
+            <!-- Unshare button will be added in next step (optional) -->
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <div class="text-muted">Not shared with anyone yet.</div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+

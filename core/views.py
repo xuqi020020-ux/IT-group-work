@@ -3,6 +3,8 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 
+from django.contrib.auth.models import User
+
 
 from .models import Document, DocumentShare
 from .forms import DocumentForm
@@ -123,4 +125,41 @@ def document_delete(request, pk):
         doc.delete()
         return redirect("core:dashboard")
     return render(request, "core/document_confirm_delete.html", {"document": doc})
+
+@login_required
+def document_share(request, pk):
+    doc = get_object_or_404(Document, pk=pk)
+
+    # Only owner or admin can manage shares
+    if not (request.user.is_staff or doc.owner_id == request.user.id):
+        return HttpResponseForbidden("You do not have permission to share this document.")
+
+    # Only meaningful for shared visibility (optional rule)
+    # If you prefer, you can allow sharing for any doc but it only takes effect when visibility=shared.
+    from .forms import ShareForm
+    form = ShareForm(request.POST or None)
+
+    message = None
+
+    if request.method == "POST" and form.is_valid():
+        username = form.cleaned_data["username"].strip()
+
+        if username == doc.owner.username:
+            message = "You cannot share a document with its owner."
+        else:
+            target = User.objects.filter(username=username).first()
+            if not target:
+                message = "User not found."
+            else:
+                DocumentShare.objects.get_or_create(document=doc, shared_with=target)
+                message = "Shared successfully."
+
+    shares = DocumentShare.objects.filter(document=doc).select_related("shared_with").order_by("shared_with__username")
+
+    return render(request, "core/document_share.html", {
+        "document": doc,
+        "form": form,
+        "shares": shares,
+        "message": message,
+    })
 
