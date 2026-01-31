@@ -207,7 +207,15 @@ def document_detail(request, pk):
         return HttpResponseForbidden("You do not have permission to view this document.")
 
 
-    return render(request, "core/document_detail.html", {"document": doc})
+    comments = Comment.objects.filter(document=doc).select_related("author")
+    comment_form = CommentForm()
+
+   
+    return render(request, "core/document_detail.html", {
+        "document": doc,
+        "comments": comments,
+        "comment_form": comment_form,
+    })
 
 
 @login_required
