@@ -33,6 +33,11 @@ class Document(models.Model):
 
     moderation_reason = models.TextField(blank=True)
 
+
+    moderated_reason = models.CharField(max_length=255, blank=True)
+
+
+
     # For user-deletion workflow: track original owner username if ownership is transferred to admin.
     orphaned_from_user = models.CharField(
         max_length=150,
