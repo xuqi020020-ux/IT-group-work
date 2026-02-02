@@ -30,3 +30,7 @@ class CommentForm(forms.Form):
         label="",
     )
 
+class AttachmentForm(forms.Form):
+    file = forms.FileField()
+
+

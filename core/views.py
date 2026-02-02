@@ -10,6 +10,8 @@ from django.utils import timezone
 from .models import Document, DocumentShare, EditSuggestion, Comment
 from .forms import DocumentForm, ShareForm, SuggestionForm, CommentForm
 
+from .models import DocumentAttachment
+from .forms import AttachmentForm
 
 
 from django.db.models import Q
@@ -392,4 +394,43 @@ def suggestion_review_action(request, sid):
         sug.save()
 
     return redirect("core:suggestion_review_list")
+
+
+@login_required
+def attachment_add(request, pk):
+    doc = get_object_or_404(Document, pk=pk)
+
+    # only owner/admin submit
+    if not (request.user.is_staff or doc.owner_id == request.user.id):
+        return HttpResponseForbidden("You do not have permission to upload attachments for this document.")
+
+    if request.method != "POST":
+        return HttpResponseForbidden("Invalid request method.")
+
+    form = AttachmentForm(request.POST, request.FILES)
+    if form.is_valid():
+        f = form.cleaned_data["file"]
+        DocumentAttachment.objects.create(
+            document=doc,
+            uploaded_by=request.user,
+            file=f,
+            original_name=getattr(f, "name", ""),
+        )
+    return redirect("core:document_detail", pk=doc.pk)
+
+
+@login_required
+def attachment_delete(request, aid):
+    att = get_object_or_404(DocumentAttachment, pk=aid)
+    doc = att.document
+
+    # only owner/admin delete
+    if not (request.user.is_staff or doc.owner_id == request.user.id):
+        return HttpResponseForbidden("You do not have permission to delete this attachment.")
+
+    if request.method != "POST":
+        return HttpResponseForbidden("Invalid request method.")
+
+    att.delete()
+    return redirect("core:document_detail", pk=doc.pk)
 

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Document, DocumentShare, EditSuggestion, Comment
+from .models import Document, DocumentShare, EditSuggestion, Comment, DocumentAttachment
 
 
 @admin.register(Document)
@@ -24,4 +24,9 @@ class CommentAdmin(admin.ModelAdmin):
     list_display = ("id", "document", "author", "created_at")
     search_fields = ("document__title", "author__username", "content")
     list_filter = ("created_at",)
+
+@admin.register(DocumentAttachment)
+class DocumentAttachmentAdmin(admin.ModelAdmin):
+    list_display = ("id", "document", "uploaded_by", "original_name", "created_at")
+    search_fields = ("document__title", "uploaded_by__username", "original_name")
 

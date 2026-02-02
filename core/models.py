@@ -123,3 +123,25 @@ class Comment(models.Model):
     def __str__(self):
         return "Comment {} on Doc {}".format(self.id, self.document_id)
 
+
+class DocumentAttachment(models.Model):
+    document = models.ForeignKey(
+        Document,
+        on_delete=models.CASCADE,
+        related_name="attachments",
+    )
+    uploaded_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="uploaded_attachments",
+    )
+    file = models.FileField(upload_to="attachments/%Y/%m/")
+    original_name = models.CharField(max_length=255, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return "Attachment {} for Doc {}".format(self.id, self.document_id)
+
