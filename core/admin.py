@@ -1,6 +1,9 @@
 from django.contrib import admin
 from .models import Document, DocumentShare, EditSuggestion, Comment, DocumentAttachment
 
+from django.contrib.auth.models import User
+from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
+
 
 def moderate_documents(modeladmin, request, queryset):
     queryset.update(
@@ -45,4 +48,33 @@ class CommentAdmin(admin.ModelAdmin):
 class DocumentAttachmentAdmin(admin.ModelAdmin):
     list_display = ("id", "document", "uploaded_by", "original_name", "created_at")
     search_fields = ("document__title", "uploaded_by__username", "original_name")
+
+def delete_users_with_governance(modeladmin, request, queryset):
+    takeover_admin = request.user  
+
+    for u in queryset:
+        
+        Document.objects.filter(owner=u, visibility_status=Document.VIS_PRIVATE).delete()
+
+        
+        Document.objects.filter(
+            owner=u,
+            visibility_status__in=[Document.VIS_PUBLIC, Document.VIS_SHARED, Document.VIS_MODERATED],
+        ).update(owner=takeover_admin)
+
+       
+        u.delete()
+
+delete_users_with_governance.short_description = (
+    "Delete selected users (private docs deleted, other docs transferred to admin)"
+)
+
+try:
+    admin.site.unregister(User)
+except admin.sites.NotRegistered:
+    pass
+
+@admin.register(User)
+class UserAdmin(DjangoUserAdmin):
+    actions = [delete_users_with_governance]
 
