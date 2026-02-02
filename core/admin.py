@@ -2,11 +2,27 @@ from django.contrib import admin
 from .models import Document, DocumentShare, EditSuggestion, Comment, DocumentAttachment
 
 
+def moderate_documents(modeladmin, request, queryset):
+    queryset.update(
+        visibility_status=Document.VIS_MODERATED,
+        moderated_reason="Content requires revision (set by admin)."
+    )
+moderate_documents.short_description = "Moderate selected documents (make non-public)"
+
+
+def unmoderate_documents(modeladmin, request, queryset):
+    queryset.update(
+        visibility_status=Document.VIS_PRIVATE,
+        moderated_reason=""
+    )
+unmoderate_documents.short_description = "Unmoderate selected documents (set to private)"
+
 @admin.register(Document)
 class DocumentAdmin(admin.ModelAdmin):
     list_display = ("id", "title", "owner", "visibility_status", "updated_at")
     list_filter = ("visibility_status", "created_at", "updated_at")
     search_fields = ("title", "owner__username")
+    actions = [moderate_documents, unmoderate_documents]
 
 @admin.register(DocumentShare)
 class DocumentShareAdmin(admin.ModelAdmin):
