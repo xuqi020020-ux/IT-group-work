@@ -1,7 +1,7 @@
 from django.contrib.auth.models import User
 
 DEFAULT_USERS = [
-    ("yaoting", "yaoting@10086", True, True),   # admin
+    ("manager", "manager@10086", True, True),   # admin
     ("test-p-01", "groupmember01", False, False),
     ("test-p-02", "groupmember02", False, False),
     ("test-p-03", "groupmember03", False, False),
