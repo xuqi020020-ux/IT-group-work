@@ -2,9 +2,9 @@ from django.contrib.auth.models import User
 
 DEFAULT_USERS = [
     ("manager", "manager@10086", True, True),   # admin
-    ("test-p-01", "groupmember01", False, False),
-    ("test-p-02", "groupmember02", False, False),
-    ("test-p-03", "groupmember03", False, False),
+    ("test01", "groupmember01", False, False),
+    ("test02", "groupmember02", False, False),
+    ("test03", "groupmember03", False, False),
 ]
 
 def seed_default_users():
