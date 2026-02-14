@@ -3,6 +3,17 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 
+from django.conf import settings
+
+try:
+    if getattr(settings, "SEED_DEFAULT_USERS", False):
+        from core.seed import seed_default_users
+        seed_default_users()
+except Exception:
+    # Avoid crashing on first migrate
+    pass
+
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('accounts/', include('django.contrib.auth.urls')), 
