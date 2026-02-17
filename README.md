@@ -1,3 +1,4 @@
+部署中出现问题：用户功能页面无法正常退出；管理员界面页面设计无法正常显示
 ---
 
 ## NoteHub – Collaborative Document Management System
