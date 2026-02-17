@@ -25,8 +25,7 @@ SECRET_KEY = '$$_*)d_9ir+v66may3qe=w$a4kk=rhvwtrr-)tad4+mr*=zkgb'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
-#"127.0.0.1", "localhost", "172.30.208.165"
+ALLOWED_HOSTS = ['*']
 
 # Application definition
 
@@ -49,6 +48,9 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+CSRF_TRUSTED_ORIGINS = ['https://*.replit.dev', 'https://*.repl.co']
+X_FRAME_OPTIONS = 'ALLOWALL'
 
 ROOT_URLCONF = 'config.urls'
 
@@ -83,16 +85,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 DATABASE_URL = os.environ.get("DATABASE_URL")
 
 if DATABASE_URL:
-    # 部署环境：使用 Neon PostgreSQL
     DATABASES = {
         "default": dj_database_url.parse(
             DATABASE_URL,
             conn_max_age=600,
-            ssl_require=True
         )
     }
 else:
-    # 本地开发：继续使用 SQLite
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
@@ -147,4 +146,8 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 SEED_DEFAULT_USERS = True
+
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 

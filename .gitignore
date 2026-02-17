@@ -16,4 +16,12 @@ media/
 # macOS
 .DS_Store
 
+# Static files
+staticfiles/
 
+# Python
+*.pyo
+*.egg-info/
+dist/
+build/
+.pythonlibs/
