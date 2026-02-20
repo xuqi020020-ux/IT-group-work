@@ -1,4 +1,16 @@
-部署中出现问题：用户功能页面无法正常退出；管理员界面页面设计无法正常显示
+部署中出现问题：用户功能页面无法正常退出；管理员界面页面设计无法正常显示（已修复
+**1. `config/settings.py`**
+- 添加了 `whitenoise` 中间件
+- 添加了 `STATIC_ROOT` 和 `STATICFILES_STORAGE`
+- 修改了 `DEBUG` 为环境变量控制
+- 添加了 `CSRF_TRUSTED_ORIGINS`
+
+**2. `requirements.txt`**
+- 添加了 `whitenoise`
+- 添加了 `gunicorn`
+
+**3. `templates/base.html`**
+- 把 logout 的 `<a>` 链接改成了 `<form method="post">` 带 CSRF token
 ---
 
 ## NoteHub – Collaborative Document Management System
