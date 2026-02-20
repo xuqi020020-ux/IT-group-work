@@ -23,10 +23,11 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = '$$_*)d_9ir+v66may3qe=w$a4kk=rhvwtrr-)tad4+mr*=zkgb'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get("DEBUG", "False") != "False"
 
-ALLOWED_HOSTS = []
-#"127.0.0.1", "localhost", "172.30.208.165"
+ALLOWED_HOSTS = ["it-group-work--xuqiqi.replit.app", "127.0.0.1", "localhost", "0.0.0.0"]
+
+CSRF_TRUSTED_ORIGINS = ["https://it-group-work--xuqiqi.replit.app"]
 
 # Application definition
 
@@ -42,6 +43,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -137,6 +139,8 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.1/howto/static-files/
 
 STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 LOGIN_URL = '/accounts/login/'
 LOGIN_REDIRECT_URL = '/'
