@@ -1,16 +1,17 @@
 部署中出现问题：用户功能页面无法正常退出；管理员界面页面设计无法正常显示（已修复
 **1. `config/settings.py`**
-- 添加了 `whitenoise` 中间件
-- 添加了 `STATIC_ROOT` 和 `STATICFILES_STORAGE`
+- 添加了 `whitenoise` 中间件--让 whitenoise 接管静态文件服务，解决 admin 界面 CSS 丢失的问题
+- 添加了 `STATIC_ROOT` 和 `STATICFILES_STORAGE`--告知 Django 静态文件收集后的存放位置，以及用 whitenoise 压缩存储
 - 修改了 `DEBUG` 为环境变量控制
-- 添加了 `CSRF_TRUSTED_ORIGINS`
+- 添加了 `CSRF_TRUSTED_ORIGINS`--使 Django 信任 Replit 域名，避免 POST 请求被 CSRF 验证拦截
 
 **2. `requirements.txt`**
-- 添加了 `whitenoise`
-- 添加了 `gunicorn`
+- 添加了 `whitenoise`--用于在生产环境直接提供静态文件（CSS、JS、图片），不需要额外的 Nginx/Apache
+- 添加了 `gunicorn`--生产环境的 WSGI 服务器，用于Replit 部署运行 Django
 
 **3. `templates/base.html`**
 - 把 logout 的 `<a>` 链接改成了 `<form method="post">` 带 CSRF token
+- Django 5.x 安全更新要求 logout 必须用 POST 请求，用 GET 请求会返回 405 错误。（而本项目最开始为了贴合教学内容，使用的是教材里提供的Django 2.x）
 ---
 
 ## NoteHub – Collaborative Document Management System
