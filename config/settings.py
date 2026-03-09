@@ -183,6 +183,14 @@ JAZZMIN_SETTINGS = {
     # Default theme color settings
     "default_icon_parents": "fas fa-chevron-circle-right",
     "default_icon_children": "fas fa-circle",
+    "usermenu_links": [
+        {
+            "name": "Return to NoteHub",  
+            "url": "/",                   
+            "icon": "fas fa-home",        
+            "new_window": False           
+        },
+    ],
 }
 
 JAZZMIN_UI_TWEAKS = {
