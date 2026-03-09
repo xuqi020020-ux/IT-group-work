@@ -49,5 +49,35 @@
     </div>
   </div>
 </div>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // find the captcha image element
+    const captchaImg = document.querySelector('img.captcha');
+    
+    if (captchaImg) {
+      // 1. Change the mouse cursor to a pointer and add a tooltip
+      captchaImg.style.cursor = 'pointer';
+      captchaImg.title = "Can't see it? Click to refresh the verification code.";
+
+      // 2. Listen for click events
+      captchaImg.addEventListener('click', function() {
+        // Send a request to the built-in refresh interface of django-simple-captcha
+        fetch('/captcha/refresh/', {
+          headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+          }
+        })
+        .then(response => response.json())
+        .then(data => {
+          // Successfully obtained the new captcha, update the image source
+          captchaImg.src = data.image_url;
+          // Also update the hidden key input field, otherwise validation will fail
+          document.getElementById('id_captcha_0').value = data.key;
+        })
+        .catch(error => console.error('Failed to refresh captcha:', error));
+      });
+    }
+  });
+</script>
 {% endblock %}
 
