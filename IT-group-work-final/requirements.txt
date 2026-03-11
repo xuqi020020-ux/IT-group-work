@@ -1,0 +1,7 @@
+psycopg2-binary
+dj-database-url
+django
+gunicorn
+whitenoise
+django-simple-captcha
+Pillow

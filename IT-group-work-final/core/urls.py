@@ -1,0 +1,29 @@
+from django.urls import path
+from . import views
+
+app_name = "core"
+
+urlpatterns = [
+    path("", views.dashboard, name="dashboard"),
+    path("documents/new/", views.document_create, name="document_create"),
+    path("documents/<int:pk>/", views.document_detail, name="document_detail"),
+    path("documents/<int:pk>/edit/", views.document_edit, name="document_edit"),
+    path("documents/<int:pk>/delete/", views.document_delete, name="document_delete"),
+    path("documents/<int:pk>/share/", views.document_share, name="document_share"),
+    path("documents/<int:pk>/unshare/<int:user_id>/", views.document_unshare, name="document_unshare"),
+    path("shared/", views.shared_with_me, name="shared_with_me"),
+    path("documents/<int:pk>/suggest/", views.suggestion_create, name="suggestion_create"),
+    path("suggestions/review/", views.suggestion_review_list, name="suggestion_review_list"),
+    path("suggestions/<int:sid>/review/", views.suggestion_review_action, name="suggestion_review_action"),
+    path("documents/<int:pk>/comments/add/", views.comment_add, name="comment_add"),
+    path("comments/<int:cid>/delete/", views.comment_delete, name="comment_delete"),
+    path("documents/<int:pk>/attachments/add/", views.attachment_add, name="attachment_add"),
+    path("attachments/<int:aid>/delete/", views.attachment_delete, name="attachment_delete"),
+    path("", views.dashboard, name="dashboard"),
+    path("profile/", views.profile_update, name="profile_update"),
+    path("settings/", views.settings_view, name="settings"),
+    path("notifications/", views.notifications_view, name="notifications"),
+    path("notifications/<int:nid>/read/", views.mark_read, name="mark_read"),
+    path("notifications/read-all/", views.mark_all_read, name="mark_all_read"),
+]
+
