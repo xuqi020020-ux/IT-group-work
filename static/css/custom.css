@@ -1,0 +1,36 @@
+/* Avatar images */
+.avatar-img {
+  object-fit: cover;
+}
+
+.avatar-placeholder-lg {
+  width: 120px;
+  height: 120px;
+  font-size: 3rem;
+}
+
+.avatar-placeholder-sm {
+  width: 32px;
+  height: 32px;
+  font-size: 14px;
+}
+
+/* Preserve whitespace/newline formatting in document/comment/suggestion content */
+.pre-wrap {
+  white-space: pre-wrap;
+}
+
+/* Brightness slider display width */
+.brightness-display {
+  width: 100px;
+}
+
+/* Extra-small badge font size */
+.badge-xs {
+  font-size: 0.7em;
+}
+
+/* Hidden utility (for data-holder spans) */
+.data-hidden {
+  display: none;
+}
