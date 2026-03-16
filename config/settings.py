@@ -52,7 +52,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-CSRF_TRUSTED_ORIGINS = ['https://*.replit.dev', 'https://*.repl.co']
+CSRF_TRUSTED_ORIGINS = [ 'https://*.replit.app','https://*.replit.dev', 'https://*.repl.co']
 X_FRAME_OPTIONS = 'ALLOWALL'
 
 ROOT_URLCONF = 'config.urls'
