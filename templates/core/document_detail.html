@@ -80,6 +80,9 @@
     <div class="card-body">
       <form method="post" action="{% url 'core:comment_add' document.pk %}">
         {% csrf_token %}
+        
+        <label for="id_content" class="visually-hidden">Add a comment</label>
+
         {{ comment_form.content }}
         <div class="mt-2">
           <button class="btn btn-primary btn-sm" type="submit">Post Comment</button>
@@ -128,7 +131,12 @@
       <div class="card-body">
         <form method="post" action="{% url 'core:attachment_add' document.pk %}" enctype="multipart/form-data">
           {% csrf_token %}
-          <input class="form-control" type="file" name="file" required>
+          
+          <!-- <input class="form-control" type="file" name="file" required> -->
+
+          <label for="file-upload" class="visually-hidden">Upload attachment</label>
+          <input id="file-upload" class="form-control" type="file" name="file" required>
+
           <div class="mt-2">
             <button class="btn btn-primary btn-sm" type="submit">Upload</button>
           </div>
