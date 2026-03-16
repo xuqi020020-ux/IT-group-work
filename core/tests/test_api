@@ -1,0 +1,163 @@
+from django.test import TestCase, RequestFactory
+from django.contrib.admin.sites import AdminSite
+from django.contrib.auth.models import User
+from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
+from core.models import Document, Notification
+from core.admin import (
+    DocumentAdmin, moderate_documents,
+    unmoderate_documents, delete_users_with_governance
+)
+
+
+class BaseAdminTestCase(TestCase):
+
+    def setUp(self):
+        self.factory = RequestFactory()
+        self.admin_user = User.objects.create_user(
+            username="admin", password="pass", is_staff=True, is_superuser=True
+        )
+        self.owner = User.objects.create_user(username="owner", password="pass")
+        self.doc = Document.objects.create(
+            owner=self.owner,
+            title="Test Doc",
+            visibility_status=Document.VIS_PUBLIC,
+        )
+        self.site = AdminSite()
+
+    def make_request(self):
+        request = self.factory.post("/admin/")
+        request.user = self.admin_user
+        return request
+
+
+# ── Moderate / Unmoderate ──────────────────────────────────────────────────────
+
+class ModerateDocumentsActionTests(BaseAdminTestCase):
+
+    def test_moderate_sets_visibility_to_moderated(self):
+        ma = DocumentAdmin(Document, self.site)
+        moderate_documents(ma, self.make_request(), Document.objects.filter(pk=self.doc.pk))
+        self.doc.refresh_from_db()
+        self.assertEqual(self.doc.visibility_status, Document.VIS_MODERATED)
+
+    def test_moderate_sets_moderated_reason(self):
+        ma = DocumentAdmin(Document, self.site)
+        moderate_documents(ma, self.make_request(), Document.objects.filter(pk=self.doc.pk))
+        self.doc.refresh_from_db()
+        self.assertNotEqual(self.doc.moderated_reason, "")
+
+    def test_moderate_creates_notification_for_owner(self):
+        ma = DocumentAdmin(Document, self.site)
+        moderate_documents(ma, self.make_request(), Document.objects.filter(pk=self.doc.pk))
+        self.assertTrue(Notification.objects.filter(recipient=self.owner).exists())
+
+    def test_moderate_notification_references_document(self):
+        ma = DocumentAdmin(Document, self.site)
+        moderate_documents(ma, self.make_request(), Document.objects.filter(pk=self.doc.pk))
+        notif = Notification.objects.filter(recipient=self.owner).first()
+        self.assertEqual(notif.related_document, self.doc)
+
+    def test_unmoderate_sets_visibility_to_private(self):
+        self.doc.visibility_status = Document.VIS_MODERATED
+        self.doc.save()
+        ma = DocumentAdmin(Document, self.site)
+        unmoderate_documents(ma, self.make_request(), Document.objects.filter(pk=self.doc.pk))
+        self.doc.refresh_from_db()
+        self.assertEqual(self.doc.visibility_status, Document.VIS_PRIVATE)
+
+    def test_unmoderate_clears_moderated_reason(self):
+        self.doc.visibility_status = Document.VIS_MODERATED
+        self.doc.moderated_reason = "Bad content"
+        self.doc.save()
+        ma = DocumentAdmin(Document, self.site)
+        unmoderate_documents(ma, self.make_request(), Document.objects.filter(pk=self.doc.pk))
+        self.doc.refresh_from_db()
+        self.assertEqual(self.doc.moderated_reason, "")
+
+    def test_moderate_multiple_documents(self):
+        doc2 = Document.objects.create(
+            owner=self.owner, title="Doc 2",
+            visibility_status=Document.VIS_PUBLIC
+        )
+        ma = DocumentAdmin(Document, self.site)
+        qs = Document.objects.filter(pk__in=[self.doc.pk, doc2.pk])
+        moderate_documents(ma, self.make_request(), qs)
+        for d in [self.doc, doc2]:
+            d.refresh_from_db()
+            self.assertEqual(d.visibility_status, Document.VIS_MODERATED)
+
+
+# ── Delete Users With Governance ───────────────────────────────────────────────
+
+class DeleteUsersWithGovernanceTests(BaseAdminTestCase):
+
+    def setUp(self):
+        super().setUp()
+        self.user_to_delete = User.objects.create_user(
+            username="victim", password="pass"
+        )
+        self.private_doc = Document.objects.create(
+            owner=self.user_to_delete,
+            title="Private Doc",
+            visibility_status=Document.VIS_PRIVATE,
+        )
+        self.public_doc = Document.objects.create(
+            owner=self.user_to_delete,
+            title="Public Doc",
+            visibility_status=Document.VIS_PUBLIC,
+        )
+        self.shared_doc = Document.objects.create(
+            owner=self.user_to_delete,
+            title="Shared Doc",
+            visibility_status=Document.VIS_SHARED,
+        )
+        self.moderated_doc = Document.objects.create(
+            owner=self.user_to_delete,
+            title="Moderated Doc",
+            visibility_status=Document.VIS_MODERATED,
+        )
+
+    def run_action(self):
+        request = self.make_request()
+        ma = DjangoUserAdmin(User, self.site)
+        delete_users_with_governance(
+            ma, request, User.objects.filter(pk=self.user_to_delete.pk)
+        )
+
+    def test_private_docs_are_deleted(self):
+        self.run_action()
+        self.assertFalse(Document.objects.filter(pk=self.private_doc.pk).exists())
+
+    def test_public_docs_transferred_to_admin(self):
+        self.run_action()
+        self.public_doc.refresh_from_db()
+        self.assertEqual(self.public_doc.owner, self.admin_user)
+
+    def test_shared_docs_transferred_to_admin(self):
+        self.run_action()
+        self.shared_doc.refresh_from_db()
+        self.assertEqual(self.shared_doc.owner, self.admin_user)
+
+    def test_moderated_docs_transferred_to_admin(self):
+        self.run_action()
+        self.moderated_doc.refresh_from_db()
+        self.assertEqual(self.moderated_doc.owner, self.admin_user)
+
+    def test_user_is_deleted(self):
+        self.run_action()
+        self.assertFalse(User.objects.filter(pk=self.user_to_delete.pk).exists())
+
+    def test_deleting_multiple_users(self):
+        second_user = User.objects.create_user(username="victim2", password="pass")
+        Document.objects.create(
+            owner=second_user, title="V2 Private",
+            visibility_status=Document.VIS_PRIVATE
+        )
+        request = self.make_request()
+        ma = DjangoUserAdmin(User, self.site)
+        delete_users_with_governance(
+            ma, request,
+            User.objects.filter(pk__in=[self.user_to_delete.pk, second_user.pk])
+        )
+        self.assertFalse(User.objects.filter(pk=self.user_to_delete.pk).exists())
+        self.assertFalse(User.objects.filter(pk=second_user.pk).exists())
