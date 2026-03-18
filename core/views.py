@@ -211,19 +211,6 @@ def dashboard(request):
     return render(request, "core/dashboard.html", {"documents": docs, "q": q})
 
 
-#    for d in docs:
-#        if d.owner_id == request.user.id:
-#            doc_sources[d.id] = "Owned"
-#        elif d.visibility_status == Document.VIS_PUBLIC:
-#            doc_sources[d.id] = "Public"
-#        elif d.id in shared_ids:
-#            doc_sources[d.id] = "Shared"
-#        else:
-#            doc_sources[d.id] = "Accessible"
-
-
-#    return render(request, "core/dashboard.html", {"documents": docs, "q": q, "doc_sources": doc_sources})
-
 
 @login_required
 def document_detail(request, pk):
